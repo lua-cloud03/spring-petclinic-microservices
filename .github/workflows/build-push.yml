@@ -248,15 +248,21 @@ jobs:
       # exit-code: 1 means the job fails here on CRITICAL findings — the
       # subsequent push step never executes, so no vulnerable image reaches ECR.
       # ignore-unfixed: true skips CVEs with no available fix (not actionable).
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin v0.70.0
+
       - name: Scan image with Trivy (CRITICAL gate)
-        uses: aquasecurity/trivy-action@master
-        with:
-          input: /tmp/${{ matrix.service }}.tar
-          format: table
-          exit-code: '1'
-          ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL'
+        run: |
+          trivy image \
+            --input /tmp/${{ matrix.service }}.tar \
+            --exit-code 1 \
+            --ignore-unfixed \
+            --vuln-type os,library \
+            --severity CRITICAL \
+            --format table \
+            --timeout 10m
 
       # ── Build & push to ECR ──────────────────────────────────────────────────
       # GHA cache hit from the pre-scan build makes this step nearly instant.
