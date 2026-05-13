@@ -202,6 +202,15 @@ jobs:
             -DskipTests \
             clean package
 
+      # ── Copy JAR to build context root ──────────────────────────────────────
+      # Maven places the JAR at spring-petclinic-{service}/target/*.jar
+      # The shared Dockerfile (docker/Dockerfile) expects it at the repo root
+      # as {ARTIFACT_NAME}.jar — copy it there before Docker build runs.
+      - name: Copy JAR to build context root
+        run: |
+          cp spring-petclinic-${{ matrix.service }}/target/spring-petclinic-${{ matrix.service }}-*.jar \
+             spring-petclinic-${{ matrix.service }}.jar
+
       # ── ARM64 Docker build setup ─────────────────────────────────────────────
       # QEMU provides user-space ARM64 emulation on the x86 GitHub runner.
       # This is slower than native but ensures the image matches the
